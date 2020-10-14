@@ -41,6 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
+import uk.ac.manchester.cs.owl.owlapi.OWLObjectPropertyImpl;
 
 import java.io.*;
 import java.util.*;
@@ -346,10 +347,39 @@ public class ClosedWorldReasoner extends AbstractReasonerComponent {
 
         // materialize the object property facts
         logger.info("materialising object properties ...");
+
         baseReasoner.getObjectProperties().forEach(p -> {
             Helper.displayProgressPercentage(i.getAndIncrement(), totalEntities);
+
             opPos.put(p, baseReasoner.getPropertyMembers(p));
+
         });
+
+        logger.info("Base Reasoner Object Properties: " + baseReasoner.getObjectProperties());
+//        try {
+//            PrintWriter writer = new PrintWriter("ClosedWorldReasoner_Logs.txt", "UTF-8");
+//            int z=0;
+//            for(OWLObjectProperty key: opPos.keySet()) {
+//                if(z==4) {
+//                    writer.println(key + ":" );
+//                    for(OWLIndividual ind: opPos.get(key).keySet()) {
+//                        if(opPos.get(key).get(ind).size() != 0)
+//                            writer.println(ind + ": " + opPos.get(key).get(ind));
+//
+//                    }
+//                    writer.println();
+//                    writer.println();
+//                    break;
+//                }
+//                z++;
+//
+//            }
+//
+//            writer.close();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+
 
         // materialize the data property facts
         logger.info("materialising datatype properties");

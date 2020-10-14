@@ -23,7 +23,7 @@ import uk.ac.manchester.cs.owl.owlapi.OWLNamedIndividualImpl;
  * experiment as the examples/father.conf does.
  */
 public class CELOEUsageExample {
-	static File familyExamplesDir = new File("../examples");
+	static File familyExamplesDir = new File("./examples");
 	static String uriPrefix = "http://example.com/father#";
 
 	public static void main(String[] args) throws ComponentInitException {
@@ -33,6 +33,7 @@ public class CELOEUsageExample {
 		 */
 		OWLFile ks = new OWLFile();
 		ks.setFileName(familyExamplesDir.getAbsolutePath() + "/father.owl");
+		System.out.println(familyExamplesDir.getAbsolutePath());
 		ks.init();
 
 		/* Set up the reasoner

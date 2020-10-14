@@ -301,9 +301,13 @@ public class CELOE extends AbstractCELA implements Cloneable{
 		// variables to it
 		if (operator == null) {
 			// we use a default operator and inject the class hierarchy for now
+			System.out.println("Inside CELOE.java. Operator is null");
 			operator = new RhoDRDown();
+			((RhoDRDown) operator).setUseHasValueConstructor(true);
+			System.out.println("inside celoe at operator" + ((RhoDRDown) operator).isUseHasValueConstructor());
 			((CustomStartRefinementOperator) operator).setStartClass(startClass);
 			((ReasoningBasedRefinementOperator) operator).setReasoner(reasoner);
+
 		}
 		if (operator instanceof CustomHierarchyRefinementOperator) {
 			((CustomHierarchyRefinementOperator) operator).setClassHierarchy(classHierarchy);

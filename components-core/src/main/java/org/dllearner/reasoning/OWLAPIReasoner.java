@@ -19,6 +19,9 @@
 package org.dllearner.reasoning;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
@@ -126,114 +129,128 @@ public class OWLAPIReasoner extends AbstractReasonerComponent {
 
     @Override
     public void init() throws ComponentInitException {
-        // reset variables (otherwise subsequent initialisation with
-        // different knowledge sources will merge both)
-        atomicConcepts = new TreeSet<>();
-        atomicRoles = new TreeSet<>();
-        datatypeProperties = new TreeSet<>();
-        individuals = new TreeSet<>();
 
-        // create OWL API ontology manager - make sure we use a new data factory so that we don't default to the static one which can cause problems in a multi threaded environment.
-        df = new OWLDataFactoryImpl();
-        manager = OWLManager.createOWLOntologyManager();
+		try {
+			PrintWriter writer = new PrintWriter("OWLAPIReasoner_Logs.txt", "UTF-8");
+			atomicConcepts = new TreeSet<>();
+			atomicRoles = new TreeSet<>();
+			datatypeProperties = new TreeSet<>();
+			individuals = new TreeSet<>();
 
-        prefixes = new TreeMap<>();
+			// create OWL API ontology manager - make sure we use a new data factory so that we don't default to the static one which can cause problems in a multi threaded environment.
+			df = new OWLDataFactoryImpl();
+			manager = OWLManager.createOWLOntologyManager();
 
-        for (KnowledgeSource source : sources) {
-            if (source instanceof OWLOntologyKnowledgeSource) {
-                ontology = ((OWLOntologyKnowledgeSource) source).createOWLOntology(manager);
-                owlAPIOntologies.add(ontology);
-            }else{
-                //This reasoner requires an ontology to process
-                throw new ComponentInitException("OWL API Reasoner requires an OWLKnowledgeSource.  Received a KS of type: " + source.getClass().getName());
-            }
+			prefixes = new TreeMap<>();
 
-            atomicConcepts.addAll(ontology.getClassesInSignature(Imports.INCLUDED));
-            atomicRoles.addAll(ontology.getObjectPropertiesInSignature(Imports.INCLUDED));
-            datatypeProperties.addAll(ontology.getDataPropertiesInSignature(Imports.INCLUDED));
-            individuals.addAll(ontology.getIndividualsInSignature(Imports.INCLUDED));
-
-            // if several knowledge sources are included, then we can only
-            // guarantee that the base URI is from one of those sources (there
-            // can't be more than one); but we will take care that all prefixes are
-            // correctly imported
-            OWLDocumentFormat format = manager.getOntologyFormat(ontology);
-            if (format != null && format.isPrefixOWLOntologyFormat()) {
-                prefixes.putAll(format.asPrefixOWLOntologyFormat().getPrefixName2PrefixMap());
-                baseURI = format.asPrefixOWLOntologyFormat().getDefaultPrefix();
-                prefixes.remove("");
-            }
-        }
-
-        // Now merge all of the knowledge sources into one ontology instance.
-        try {
-            //The following line illustrates a problem with using different OWLOntologyManagers.  This can manifest itself if we have multiple sources who were created with different manager instances.
-            //ontology = OWLManager.createOWLOntologyManager().createOntology(IRI.create("http://dl-learner/all"), new HashSet<OWLOntology>(owlAPIOntologies));
-			// we have to do this because e.g. data range axioms from imports won't by found via EntitySearcher.getRange method
-			Set<OWLAxiom> allAxioms = owlAPIOntologies.stream()
-//					.flatMap(o -> o.getLogicalAxioms(Imports.INCLUDED).stream()) // and for whatever reason, Pellet fails when we just use logical axioms and declaration axioms are missing
-					.flatMap(o -> o.getAxioms(Imports.INCLUDED).stream())
-					.collect(Collectors.toSet());
-			ontology = manager.createOntology(allAxioms, IRI.generateDocumentIRI());
-
-			//we have to add all import declarations manually here, because these are not OWL axioms
-            List<OWLOntologyChange> addImports = new ArrayList<>();
-            for (OWLOntology ont : owlAPIOntologies) {
-            	for (OWLImportsDeclaration importDeclaration : ont.getImportsDeclarations()) {
-            		addImports.add(new AddImport(ontology, importDeclaration));
+			for (KnowledgeSource source : sources) {
+				if (source instanceof OWLOntologyKnowledgeSource) {
+					ontology = ((OWLOntologyKnowledgeSource) source).createOWLOntology(manager);
+					owlAPIOntologies.add(ontology);
+				}else{
+					//This reasoner requires an ontology to process
+					throw new ComponentInitException("OWL API Reasoner requires an OWLKnowledgeSource.  Received a KS of type: " + source.getClass().getName());
 				}
-            }
-            manager.applyChanges(addImports);
-            // free some memory. It is useless to keep two copies of the same 
-            // ontology
-            for (OWLOntology toRemove : owlAPIOntologies) {
-                manager.removeOntology(toRemove);
-            }
-            owlAPIOntologies = new HashSet<>();
-        } catch (OWLOntologyCreationException e1) {
-            e1.printStackTrace();
-        }
 
-        //set up OWL reasoner
-        if(reasoner == null) {
-        	initBaseReasoner();
-        }
+				atomicConcepts.addAll(ontology.getClassesInSignature(Imports.INCLUDED));
+				atomicRoles.addAll(ontology.getObjectPropertiesInSignature(Imports.INCLUDED));
+				datatypeProperties.addAll(ontology.getDataPropertiesInSignature(Imports.INCLUDED));
+				individuals.addAll(ontology.getIndividualsInSignature(Imports.INCLUDED));
+				writer.println("Atomic Concepts: " + atomicConcepts);
+				writer.println("Atomic Roles: " + atomicRoles);
+				writer.println("Datatype Properties: " + datatypeProperties);
+				writer.println("Individuals: " + individuals.size());
+				writer.println();
+				writer.println();
 
-        // compute class hierarchy and types of individuals
-        // (done here to speed up later reasoner calls)
-        boolean inconsistentOntology = !reasoner.isConsistent();
+				// if several knowledge sources are included, then we can only
+				// guarantee that the base URI is from one of those sources (there
+				// can't be more than one); but we will take care that all prefixes are
+				// correctly imported
+				OWLDocumentFormat format = manager.getOntologyFormat(ontology);
+				if (format != null && format.isPrefixOWLOntologyFormat()) {
+					prefixes.putAll(format.asPrefixOWLOntologyFormat().getPrefixName2PrefixMap());
+					baseURI = format.asPrefixOWLOntologyFormat().getDefaultPrefix();
+					prefixes.remove("");
+				}
+			}
 
-        if (!inconsistentOntology) {
-            reasoner.precomputeInferences(
-            		InferenceType.CLASS_HIERARCHY, 
-            		InferenceType.CLASS_ASSERTIONS, 
-            		InferenceType.OBJECT_PROPERTY_HIERARCHY,
-            		InferenceType.DATA_PROPERTY_HIERARCHY,
-            		InferenceType.OBJECT_PROPERTY_ASSERTIONS,
-					InferenceType.DATA_PROPERTY_ASSERTIONS,
-            		InferenceType.SAME_INDIVIDUAL);
-        } else {
-        	PelletExplanation expGen = new PelletExplanation(ontology);
-        	logger.error("The loaded ontology is logically inconsistent! One explanation for this is the following minimal set of axioms: "
-					+ expGen.getInconsistencyExplanation());
-            throw new ComponentInitException("Inconsistent ontologies.");
-        }
+			// Now merge all of the knowledge sources into one ontology instance.
+			try {
+				//The following line illustrates a problem with using different OWLOntologyManagers.  This can manifest itself if we have multiple sources who were created with different manager instances.
+				//ontology = OWLManager.createOWLOntologyManager().createOntology(IRI.create("http://dl-learner/all"), new HashSet<OWLOntology>(owlAPIOntologies));
+				// we have to do this because e.g. data range axioms from imports won't by found via EntitySearcher.getRange method
+				Set<OWLAxiom> allAxioms = owlAPIOntologies.stream()
+//					.flatMap(o -> o.getLogicalAxioms(Imports.INCLUDED).stream()) // and for whatever reason, Pellet fails when we just use logical axioms and declaration axioms are missing
+						.flatMap(o -> o.getAxioms(Imports.INCLUDED).stream())
+						.collect(Collectors.toSet());
+				ontology = manager.createOntology(allAxioms, IRI.generateDocumentIRI());
 
-        df = manager.getOWLDataFactory();
+				//we have to add all import declarations manually here, because these are not OWL axioms
+				List<OWLOntologyChange> addImports = new ArrayList<>();
+				for (OWLOntology ont : owlAPIOntologies) {
+					for (OWLImportsDeclaration importDeclaration : ont.getImportsDeclarations()) {
+						addImports.add(new AddImport(ontology, importDeclaration));
+					}
+				}
+				manager.applyChanges(addImports);
+				// free some memory. It is useless to keep two copies of the same
+				// ontology
+				for (OWLOntology toRemove : owlAPIOntologies) {
+					manager.removeOntology(toRemove);
+				}
+				owlAPIOntologies = new HashSet<>();
+			} catch (OWLOntologyCreationException e1) {
+				e1.printStackTrace();
+			}
 
-        initDatatypes();
+			//set up OWL reasoner
+			if(reasoner == null) {
+				initBaseReasoner();
+			}
 
-        // remove top and bottom properties (for backwards compatibility)
+			// compute class hierarchy and types of individuals
+			// (done here to speed up later reasoner calls)
+			boolean inconsistentOntology = !reasoner.isConsistent();
+
+			if (!inconsistentOntology) {
+				reasoner.precomputeInferences(
+						InferenceType.CLASS_HIERARCHY,
+						InferenceType.CLASS_ASSERTIONS,
+						InferenceType.OBJECT_PROPERTY_HIERARCHY,
+						InferenceType.DATA_PROPERTY_HIERARCHY,
+						InferenceType.OBJECT_PROPERTY_ASSERTIONS,
+						InferenceType.DATA_PROPERTY_ASSERTIONS,
+						InferenceType.SAME_INDIVIDUAL);
+			} else {
+				PelletExplanation expGen = new PelletExplanation(ontology);
+				logger.error("The loaded ontology is logically inconsistent! One explanation for this is the following minimal set of axioms: "
+						+ expGen.getInconsistencyExplanation());
+				throw new ComponentInitException("Inconsistent ontologies.");
+			}
+
+			df = manager.getOWLDataFactory();
+
+			initDatatypes();
+
+			// remove top and bottom properties (for backwards compatibility)
 //		atomicRoles.remove(df.getOWLObjectProperty(IRI.create("http://www.w3.org/2002/07/owl#bottomObjectProperty"));
 //		atomicRoles.remove(df.getOWLObjectProperty(IRI.create("http://www.w3.org/2002/07/owl#topObjectProperty"));
 
-        // remove classes that are built-in entities
-		atomicConcepts.removeIf(cls -> cls.getIRI().isReservedVocabulary());
+			// remove classes that are built-in entities
+			atomicConcepts.removeIf(cls -> cls.getIRI().isReservedVocabulary());
 
-		 minimizer = new OWLClassExpressionMinimizer(df, this);
-		 logger.info("Loaded reasoner: " + reasoner.getReasonerName() + " (" + reasoner.getClass().getName() + ")");
-		 
-		 initialized = true;
+			minimizer = new OWLClassExpressionMinimizer(df, this);
+			logger.info("Loaded reasoner: " + reasoner.getReasonerName() + " (" + reasoner.getClass().getName() + ")");
+
+			initialized = true;
+			writer.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		// reset variables (otherwise subsequent initialisation with
+        // different knowledge sources will merge both)
+
     }
     
     private void initDatatypes() {
@@ -900,6 +917,7 @@ public class OWLAPIReasoner extends AbstractReasonerComponent {
 
 		Set<? extends OWLIndividual> namedIndividuals;
 		try {
+
 			namedIndividuals = reasoner.getObjectPropertyValues(
 					individual.asOWLNamedIndividual(), objectProperty).getFlattened();
 		} catch (UnsupportedOperationException e) {

@@ -1285,6 +1285,8 @@ public class SPARQLReasoner extends AbstractReasonerComponent implements SchemaR
 		}
 		return individuals;
 	}
+
+
 	
 //	/**
 //	 * @param cls

@@ -83,6 +83,7 @@ public class OWLFile extends AbstractKnowledgeSource implements OWLOntologyKnowl
     public OWLFile(String filename) {
         try {
             url = new File(filename).toURI().toURL();
+            System.out.println("OWLFIle initialisation URL" + url);
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
