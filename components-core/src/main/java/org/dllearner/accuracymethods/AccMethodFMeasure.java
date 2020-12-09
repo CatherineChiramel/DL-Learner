@@ -22,6 +22,8 @@ import org.dllearner.core.ComponentAnn;
 import org.dllearner.core.config.ConfigOption;
 import org.dllearner.learningproblems.Heuristics;
 
+import java.io.FileWriter;
+
 @ComponentAnn(name = "FMeasure", shortName = "fmeasure", version = 0)
 public class AccMethodFMeasure implements AccMethodTwoValued, AccMethodWithBeta {
 
@@ -55,12 +57,24 @@ public class AccMethodFMeasure implements AccMethodTwoValued, AccMethodWithBeta 
 
 		double precision = Heuristics.divideOrZero( tp , tp+fp );
 
+		try {
+			FileWriter measureWriter = new FileWriter("C:/Users/cathe/IdeaProjects/DL-Learner/scripts/SLHAccuracy.txt", true);
+			measureWriter.append("Precision: " + precision + " Recall: " + recall);
+
+			measureWriter.flush();
+			measureWriter.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 		if (beta == 0) {
 			return Heuristics.getFScore(recall, precision);
 		} else {
 			return Heuristics.getFScore(recall, precision, beta);
 		}
 	}
+
+
 
 	@Override
 	public void setBeta(double beta) {

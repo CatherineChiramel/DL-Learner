@@ -131,7 +131,7 @@ public class OWLAPIReasoner extends AbstractReasonerComponent {
     public void init() throws ComponentInitException {
 
 		try {
-			PrintWriter writer = new PrintWriter("OWLAPIReasoner_Logs.txt", "UTF-8");
+//			PrintWriter writer = new PrintWriter("OWLAPIReasoner_Logs.txt", "UTF-8");
 			atomicConcepts = new TreeSet<>();
 			atomicRoles = new TreeSet<>();
 			datatypeProperties = new TreeSet<>();
@@ -156,12 +156,12 @@ public class OWLAPIReasoner extends AbstractReasonerComponent {
 				atomicRoles.addAll(ontology.getObjectPropertiesInSignature(Imports.INCLUDED));
 				datatypeProperties.addAll(ontology.getDataPropertiesInSignature(Imports.INCLUDED));
 				individuals.addAll(ontology.getIndividualsInSignature(Imports.INCLUDED));
-				writer.println("Atomic Concepts: " + atomicConcepts);
-				writer.println("Atomic Roles: " + atomicRoles);
-				writer.println("Datatype Properties: " + datatypeProperties);
-				writer.println("Individuals: " + individuals.size());
-				writer.println();
-				writer.println();
+//				writer.println("Atomic Concepts: " + atomicConcepts);
+//				writer.println("Atomic Roles: " + atomicRoles);
+//				writer.println("Datatype Properties: " + datatypeProperties);
+//				writer.println("Individuals: " + individuals.size());
+//				writer.println();
+//				writer.println();
 
 				// if several knowledge sources are included, then we can only
 				// guarantee that the base URI is from one of those sources (there
@@ -244,7 +244,7 @@ public class OWLAPIReasoner extends AbstractReasonerComponent {
 			logger.info("Loaded reasoner: " + reasoner.getReasonerName() + " (" + reasoner.getClass().getName() + ")");
 
 			initialized = true;
-			writer.close();
+//			writer.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

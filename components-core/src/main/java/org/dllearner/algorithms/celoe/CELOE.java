@@ -50,6 +50,9 @@ import uk.ac.manchester.cs.owl.owlapi.OWLClassImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -327,7 +330,7 @@ public class CELOE extends AbstractCELA implements Cloneable{
 		isRunning = true;
 		reset();
 		nanoStartTime = System.nanoTime();
-		
+
 		currentHighestAccuracy = 0.0;
 		OENode nextNode;
 
@@ -376,7 +379,26 @@ public class CELOE extends AbstractCELA implements Cloneable{
 		
 		// print some stats
 		printAlgorithmRunStats();
-		
+
+		// get the top expression
+		OWLClassExpression description =  getTopClassExpression();
+
+
+		// get the individuals satisfying the expression
+		SortedSet<OWLIndividual> individuals = reasoner.getIndividuals(description);
+		try {
+			PrintWriter writer = new PrintWriter("C:/Users/cathe/IdeaProjects/DL-Learner/scripts/classIndividuals.txt", "UTF-8");
+//			PrintWriter writer = new PrintWriter("/thesis/DL-Learner/scripts/classIndividuals.txt", "UTF-8");
+
+			for(OWLIndividual i: individuals) {
+				writer.println(i.toString());
+			}
+			writer.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+
 		// print solution(s)
 		logger.info("solutions:\n" + getSolutionString());
 		

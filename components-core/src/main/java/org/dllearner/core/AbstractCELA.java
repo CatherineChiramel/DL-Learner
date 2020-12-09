@@ -46,6 +46,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.manchester.cs.owl.owlapi.OWLClassImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl;
 
+import java.io.FileWriter;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -340,6 +341,18 @@ public abstract class AbstractCELA extends AbstractComponent implements ClassExp
 	protected String descriptionToString(OWLClassExpression description) {
 		return renderer.render(description);
 	}
+
+	protected OWLClassExpression getTopClassExpression() {
+		System.out.println("inside getClassExpression method");
+		OWLClassExpression description = null;
+		for(EvaluatedDescription<? extends Score> ed : getCurrentlyBestEvaluatedDescriptions().descendingSet()) {
+			description = ed.getDescription();
+			break;
+		}
+		return description;
+	}
+
+
 		
 	
 	protected String getSolutionString() {
@@ -357,7 +370,18 @@ public abstract class AbstractCELA extends AbstractComponent implements ClassExp
 				str += current + ": " + descriptionString + " (pred. acc.: "
 						+ dfPercent.format(reasoningUtil.getAccuracyOrTooWeak2(new AccMethodPredAcc(true), description, positiveExamples, negativeExamples, 1))
 						+ ", F-measure: "+ dfPercent.format(reasoningUtil.getAccuracyOrTooWeak2(new AccMethodFMeasure(true), description, positiveExamples, negativeExamples, 1));
+				try {
+					if(current == 1) {
+						FileWriter measureWriter = new FileWriter("C:/Users/cathe/IdeaProjects/DL-Learner/scripts/SLHAccuracy.txt", true);
+						measureWriter.append(" #" + descriptionString + "\n");
 
+						measureWriter.flush();
+						measureWriter.close();
+					}
+
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 				AccMethodTwoValued accuracyMethod = ((PosNegLP)learningProblem).getAccuracyMethod();
 				if ( !(accuracyMethod instanceof AccMethodPredAcc)
 						&& !(accuracyMethod instanceof AccMethodFMeasure) ) {

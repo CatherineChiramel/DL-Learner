@@ -287,14 +287,14 @@ public class RhoDRDown extends RefinementOperatorAdapter implements Component, C
 	@Override
     public void init() throws ComponentInitException {
 		try {
-			PrintWriter writer = new PrintWriter("RhoDRDownLogs.txt", "UTF-8");
-			writer.println("!****************Initialiasing Rho Operator******************!");
+//			PrintWriter writer = new PrintWriter("RhoDRDownLogs.txt", "UTF-8");
+//			writer.println("!****************Initialiasing Rho Operator******************!");
 			if (classHierarchy == null) classHierarchy = reasoner.getClassHierarchy();
 			if (dataPropertyHierarchy == null) dataPropertyHierarchy = reasoner.getDatatypePropertyHierarchy();
 			if (objectPropertyHierarchy == null) objectPropertyHierarchy = reasoner.getObjectPropertyHierarchy();
 
-			writer.println("classHierarchy: " + classHierarchy);
-			writer.println("Object Properties: " + reasoner.getObjectProperties());
+			//writer.println("classHierarchy: " + classHierarchy);
+			//writer.println("Object Properties: " + reasoner.getObjectProperties());
 
 			logger.debug("classHierarchy: " + classHierarchy);
 			logger.debug("object properties: " + reasoner.getObjectProperties());
@@ -305,26 +305,26 @@ public class RhoDRDown extends RefinementOperatorAdapter implements Component, C
 			opRanges = reasoner.getObjectPropertyRanges();
 			dpDomains = reasoner.getDataPropertyDomains();
 
-			writer.println("#####Domains#####");
-			writer.println("Object Property Domain: \n " + opDomains);
-			writer.println("Data Property Domain: \n " + dpDomains);
-			writer.println("#####Ranges#####");
-			writer.println("Object Property Domain: \n " + opRanges);
-
+			//writer.println("#####Domains#####");
+			//writer.println("Object Property Domain: \n " + opDomains);
+//			writer.println("Data Property Domain: \n " + dpDomains);
+//			writer.println("#####Ranges#####");
+//			writer.println("Object Property Domain: \n " + opRanges);
+//
 
 
 			// r. some {ind}
 			if (useHasValueConstructor) {
-				writer.println("useHasValueConstructor: " + true);
-				writer.println("\n Object Properties \n");
+//				writer.println("useHasValueConstructor: " + true);
+//				writer.println("\n Object Properties \n");
 
 				for (OWLObjectProperty op : objectPropertyHierarchy.getEntities()) {
 
 					Map<OWLIndividual, SortedSet<OWLIndividual>> propertyMembers = reasoner.getPropertyMembers(op);
 
-					for(OWLIndividual key: propertyMembers.keySet()) {
-						writer.println(key + ": " + propertyMembers.get(key));
-					}
+//					for(OWLIndividual key: propertyMembers.keySet()) {
+//						writer.println(key + ": " + propertyMembers.get(key));
+//					}
 
 					// compute the frequency of all individuals used as object and filter by threshold
 					Set<OWLIndividual> frequentInds = frequentObjects(propertyMembers.values(), frequencyThreshold);
@@ -451,7 +451,7 @@ public class RhoDRDown extends RefinementOperatorAdapter implements Component, C
 			}
 
 			initialized = true;
-			writer.close();
+//			writer.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
