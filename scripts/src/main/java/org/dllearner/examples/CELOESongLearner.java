@@ -28,22 +28,22 @@ import uk.ac.manchester.cs.owl.owlapi.OWLClassImpl;
 import uk.ac.manchester.cs.owl.owlapi.OWLNamedIndividualImpl;
 
 /**
- * This class should exemplify how to run CELOE programmatically, i.e. by
- * creating all components explicitly in Java. This example runs the same
- * experiment as the examples/father.conf does.
+ * Class to execute CELOE algorithm to generate OWL class expressions for playlists
+ * and generate song recommendations for them.
  */
 public class CELOESongLearner {
     static File familyExamplesDir = new File("./examples");
+    static File dataDirectory = new File("../data/");
+    //dastatic String dataDirectory = "../data/";
     Random random = new Random(System.currentTimeMillis());
     static String uriPrefix = "http://upb.de/Music#";
-    protected String SongEmbeddingsFile = "C:/Users/cathe/IdeaProjects/DL-Learner/scripts/SpotifyLowHighEmbeddings.csv";
-    protected String playlistEmbeddingsFile = "C:/Users/cathe/IdeaProjects/DL-Learner/scripts/SLHplaylistVector.csv";
+    protected String SongEmbeddingsFile = dataDirectory.getAbsolutePath() + "SpotifyEmbeddings.csv";
+    protected String playlistEmbeddingsFile = dataDirectory.getAbsolutePath() + "SplaylistVector.csv";
+//    protected String SongEmbeddingsFile = "C:/Users/cathe/IdeaProjects/DL-Learner/scripts/SpotifyLowHighEmbeddings.csv";
+//    protected String playlistEmbeddingsFile = "C:/Users/cathe/IdeaProjects/DL-Learner/scripts/SLHplaylistVector.csv";
+    protected String knowledgeGraphFile = "SpotifyKG.owl";
+    protected  String songDatasetFile = "SpotifyData.csv";
     protected List<Double> defaultEmbedding;
-
-//    protected String SongEmbeddingsFile = "/thesis/DL-Learner/scripts/SpotifyLowlevelEmbeddings.csv";
-//    protected String playlistEmbeddingsFile = "/thesis/DL-Learner/scripts/SLplaylistVector.csv";
-
-
     protected HashMap<String, List<Double>> songVectorMap;
     protected HashMap<String, List<Double>> playlistVectorMap;
     protected Map<String, List<String>> playlistSongMap;
@@ -60,7 +60,7 @@ public class CELOESongLearner {
     }
 
     /**
-     * Create a playlist vector map
+     * Create a map with the playlist and its centroid vector
      */
     protected void createPlaylistVectorMap() {
         String line;
@@ -127,16 +127,11 @@ public class CELOESongLearner {
         String individual;
         Map<String, Double> individualSimilarity = new HashMap<>();
         try {
-            BufferedReader br = new BufferedReader(new FileReader("C:/Users/cathe/IdeaProjects/DL-Learner/scripts/classIndividuals.txt"));
+            BufferedReader br = new BufferedReader(new FileReader(dataDirectory.getAbsolutePath() + "classIndividuals.txt"));
 //            BufferedReader br = new BufferedReader(new FileReader("/thesis/DL-Learner/scripts/classIndividuals.txt"));
             while((individual = br.readLine()) != null) {
                 //System.out.println("playlist: " + playlist + "individual: " + individual );
-                if(this.songVectorMap.get(individual) == null) {
-                    for(int i=0; i<200; i++) {
-                        this.defaultEmbedding.add(-0.018702794);
-                    }
-                    this.songVectorMap.put(individual, this.defaultEmbedding);
-                }
+
                 //System.out.println(playlist + ": " + this.playlistVectorMap.get(playlist) + "\n" + individual + ": " + this.songVectorMap.get(individual) );
                 double cosineSimilarity = cosineSimilarity(this.playlistVectorMap.get(playlist), this.songVectorMap.get(individual));
                 individualSimilarity.put(individual, cosineSimilarity);
@@ -149,6 +144,12 @@ public class CELOESongLearner {
     }
 
 
+    /**
+     * method to write the test songs and their corresponding index in the generated recommendations
+     * @param playlist
+     * @param trainSongs
+     * @param testSongs
+     */
     public void  writeResults(String playlist, List<String> trainSongs, List<String> testSongs) {
         Map<String, Double> individualSimilarityMap = createIndividualSimilarityMap(playlist);
         for(String song: trainSongs) {
@@ -166,7 +167,7 @@ public class CELOESongLearner {
         }
 
         try {
-            FileWriter writer = new FileWriter("C:/Users/cathe/IdeaProjects/DL-Learner/scripts/resultsSLH.txt", true);
+            FileWriter writer = new FileWriter( dataDirectory.getAbsolutePath() + "resultsSLH.txt", true);
 //            FileWriter writer = new FileWriter("/thesis/DL-Learner/scripts/resultsSpotifyLowlevel.txt", true);
             writer.write(playlist);
             writer.write("\n");
@@ -201,9 +202,14 @@ public class CELOESongLearner {
         return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
     }
 
+    /**
+     * Method to create a map between the playlists and the songs in them
+     */
     protected void createPlaylistSongsMap() {
         try {
-            BufferedReader csvReader = new BufferedReader(new FileReader("C:/Users/cathe/IdeaProjects/DL-Learner/scripts/playlistSongs.csv"));
+            BufferedReader csvReader = new BufferedReader(new FileReader( dataDirectory.getAbsolutePath() + "playlistSongs.csv"));
+
+ //           BufferedReader csvReader = new BufferedReader(new FileReader("C:/Users/cathe/IdeaProjects/DL-Learner/scripts/playlistSongs.csv"));
 //            BufferedReader csvReader = new BufferedReader(new FileReader("/thesis/DL-Learner/scripts/playlistSongs.csv"));
             String row;
             while ((row = csvReader.readLine())!= null) {
@@ -218,9 +224,14 @@ public class CELOESongLearner {
 
     }
 
+    /**
+     * Method to get the name of all the songs in the dataset
+     */
     protected void retrieveExistingSongs() {
         try {
-            BufferedReader csvReader = new BufferedReader(new FileReader("C:/Users/cathe/IdeaProjects/DL-Learner/scripts/SpotifyLowHighData.csv"));
+            BufferedReader csvReader = new BufferedReader(new FileReader( dataDirectory.getAbsolutePath() + this.songDatasetFile));
+
+//            BufferedReader csvReader = new BufferedReader(new FileReader("C:/Users/cathe/IdeaProjects/DL-Learner/scripts/SpotifyLowHighData.csv"));
 //            BufferedReader csvReader = new BufferedReader(new FileReader("/thesis/DL-Learner/scripts/SpotifyLowlevelData.csv"));
 
             String row = csvReader.readLine();
@@ -243,11 +254,20 @@ public class CELOESongLearner {
         HashSet<OWLIndividual> positiveExamples = new HashSet<>();
         for(String song: this.playlistSongMap.get(playlist)) {
             if(this.existingSongs.contains(song)) {
-                positiveExamples.add(new OWLNamedIndividualImpl(IRI.create(uriPrefix + song)));
+                //positiveExamples.add(new OWLNamedIndividualImpl(IRI.create(uriPrefix + song)));
                 this.trainingPlusTestSongs.add("Music#" + song);
             }
         }
-        //System.out.println(this.trainingPlusTestSongs);
+        int count =0 ;
+        for(int i=trainingPlusTestSongs.size()-1; i>=0; i--) {
+            if(count < 10) {
+                continue;
+            }
+            else {
+                positiveExamples.add(new OWLNamedIndividualImpl(IRI.create(uriPrefix + trainingPlusTestSongs.get(i))));
+            }
+            count ++;
+        }
         return positiveExamples;
     }
 
@@ -277,14 +297,34 @@ public class CELOESongLearner {
     }
 
 
+    /**
+     * Get the names of the valid playlists from file
+     * @return
+     */
+    public List<String> getValidPlaylists() {
+        String line = "";
+        List<String> playlistNames = new ArrayList<String>();
+        try {
+            BufferedReader br = new BufferedReader(new FileReader( dataDirectory.getAbsolutePath() + "validPlaylists.csv"));
+
+            while((line = br.readLine()) != null) {
+                playlistNames.add(line);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return playlistNames;
+    }
+
+
 
 
     public static void main(String[] args) throws ComponentInitException {
         CELOESongLearner songLearner = new CELOESongLearner();
         Random random = new Random(System.currentTimeMillis());
         OWLFile ks = new OWLFile();
-        //ks.setFileName(familyExamplesDir.getAbsolutePath() + "/music.owl");
-        ks.setFileName("C:/Users/cathe/IdeaProjects/DL-Learner/scripts/SpotifyLowHighKG.owl");
+        ks.setFileName(dataDirectory.getAbsolutePath() + songLearner.knowledgeGraphFile);
+//        ks.setFileName("C:/Users/cathe/IdeaProjects/DL-Learner/scripts/SpotifyLowHighKG.owl");
 //        ks.setFileName("/thesis/DL-Learner/scripts/SpotifyLowHighKG.owl");
         ks.init();
 
@@ -303,15 +343,16 @@ public class CELOESongLearner {
         BufferedReader csvReader = null;
         Map<String, List<OWLIndividual>> propertyMap = new HashMap<>();
         //String playlist = "NTC_ Gym Strong";
-        String[] playlists = {"Rock Me UP!", "One More Rep", "Songs to Sing in the Car", "Alternative 90s", "90s Pop Rock Essentials", "Nike Running Tempo Mix", "Autumn Leaves", "Wake Up Happy"};
+        //String[] playlists = {"Rock Me UP!", "One More Rep", "Songs to Sing in the Car", "Alternative 90s", "90s Pop Rock Essentials", "Nike Running Tempo Mix", "Autumn Leaves", "Wake Up Happy"};
+        List<String> playlists = songLearner.getValidPlaylists();
         songLearner.createPlaylistSongsMap();
         songLearner.retrieveExistingSongs();
         songLearner.createSongVectorMap();
         songLearner.createPlaylistVectorMap();
 
         try {
-            //csvReader = new BufferedReader(new FileReader(familyExamplesDir.getAbsolutePath() + "/preprocessedSongData2.csv"));
-            csvReader = new BufferedReader(new FileReader("C:/Users/cathe/IdeaProjects/DL-Learner/scripts/SpotifyLowHighData.csv"));
+            csvReader = new BufferedReader(new FileReader(dataDirectory.getAbsolutePath() + songLearner.songDatasetFile));
+//            csvReader = new BufferedReader(new FileReader("C:/Users/cathe/IdeaProjects/DL-Learner/scripts/SpotifyLowHighData.csv"));
 //            csvReader = new BufferedReader(new FileReader("/thesis/DL-Learner/scripts/SpotifyLowHighData.csv"));
             String row = csvReader.readLine();
             String[] songProperties = row.split(",");
@@ -336,7 +377,9 @@ public class CELOESongLearner {
         for(String playlist: playlists) {
 
             try {
-                FileWriter measureWriter = new FileWriter("C:/Users/cathe/IdeaProjects/DL-Learner/scripts/SLHAccuracy.txt", true);
+                //FileWriter measureWriter = new FileWriter("C:/Users/cathe/IdeaProjects/DL-Learner/scripts/SLHAccuracy.txt", true);
+                FileWriter measureWriter = new FileWriter( dataDirectory.getAbsolutePath() + "SAccuracy.txt", true);
+
                 measureWriter.append("\n" + playlist + ": ");
                 measureWriter.flush();
                 measureWriter.close();
