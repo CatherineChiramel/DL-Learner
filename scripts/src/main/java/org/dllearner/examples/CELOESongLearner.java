@@ -33,16 +33,17 @@ import uk.ac.manchester.cs.owl.owlapi.OWLNamedIndividualImpl;
  */
 public class CELOESongLearner {
     static File familyExamplesDir = new File("./examples");
-    static File dataDirectory = new File("../data/");
+    static File dataDirectory = new File("../../../../../../../SongData/");
+    static File resultDirectory = new File("../../../../../../../Results/");
     //dastatic String dataDirectory = "../data/";
     Random random = new Random(System.currentTimeMillis());
     static String uriPrefix = "http://upb.de/Music#";
-    protected String SongEmbeddingsFile = dataDirectory.getAbsolutePath() + "SpotifyEmbeddings.csv";
-    protected String playlistEmbeddingsFile = dataDirectory.getAbsolutePath() + "SplaylistVector.csv";
+    protected String SongEmbeddingsFile = dataDirectory.getAbsolutePath() + "Embeddings/SpotifyEmbeddings.csv";
+    protected String playlistEmbeddingsFile = dataDirectory.getAbsolutePath() + "PlaylistVector/SPlaylistVector.csv";
 //    protected String SongEmbeddingsFile = "C:/Users/cathe/IdeaProjects/DL-Learner/scripts/SpotifyLowHighEmbeddings.csv";
 //    protected String playlistEmbeddingsFile = "C:/Users/cathe/IdeaProjects/DL-Learner/scripts/SLHplaylistVector.csv";
-    protected String knowledgeGraphFile = "SpotifyKG.owl";
-    protected  String songDatasetFile = "SpotifyData.csv";
+    protected String knowledgeGraphFile = dataDirectory.getAbsolutePath() + "KG/SpotifyKG.owl";
+    protected  String songDatasetFile = dataDirectory.getAbsolutePath() + "Dataset/SpotifyData.csv";
     protected List<Double> defaultEmbedding;
     protected HashMap<String, List<Double>> songVectorMap;
     protected HashMap<String, List<Double>> playlistVectorMap;
@@ -167,7 +168,7 @@ public class CELOESongLearner {
         }
 
         try {
-            FileWriter writer = new FileWriter( dataDirectory.getAbsolutePath() + "resultsSLH.txt", true);
+            FileWriter writer = new FileWriter( resultDirectory.getAbsolutePath() + "resultsSLH.txt", true);
 //            FileWriter writer = new FileWriter("/thesis/DL-Learner/scripts/resultsSpotifyLowlevel.txt", true);
             writer.write(playlist);
             writer.write("\n");
@@ -229,7 +230,7 @@ public class CELOESongLearner {
      */
     protected void retrieveExistingSongs() {
         try {
-            BufferedReader csvReader = new BufferedReader(new FileReader( dataDirectory.getAbsolutePath() + this.songDatasetFile));
+            BufferedReader csvReader = new BufferedReader(new FileReader( this.songDatasetFile));
 
 //            BufferedReader csvReader = new BufferedReader(new FileReader("C:/Users/cathe/IdeaProjects/DL-Learner/scripts/SpotifyLowHighData.csv"));
 //            BufferedReader csvReader = new BufferedReader(new FileReader("/thesis/DL-Learner/scripts/SpotifyLowlevelData.csv"));
@@ -323,7 +324,7 @@ public class CELOESongLearner {
         CELOESongLearner songLearner = new CELOESongLearner();
         Random random = new Random(System.currentTimeMillis());
         OWLFile ks = new OWLFile();
-        ks.setFileName(dataDirectory.getAbsolutePath() + songLearner.knowledgeGraphFile);
+        ks.setFileName(songLearner.knowledgeGraphFile);
 //        ks.setFileName("C:/Users/cathe/IdeaProjects/DL-Learner/scripts/SpotifyLowHighKG.owl");
 //        ks.setFileName("/thesis/DL-Learner/scripts/SpotifyLowHighKG.owl");
         ks.init();
@@ -351,7 +352,7 @@ public class CELOESongLearner {
         songLearner.createPlaylistVectorMap();
 
         try {
-            csvReader = new BufferedReader(new FileReader(dataDirectory.getAbsolutePath() + songLearner.songDatasetFile));
+            csvReader = new BufferedReader(new FileReader(songLearner.songDatasetFile));
 //            csvReader = new BufferedReader(new FileReader("C:/Users/cathe/IdeaProjects/DL-Learner/scripts/SpotifyLowHighData.csv"));
 //            csvReader = new BufferedReader(new FileReader("/thesis/DL-Learner/scripts/SpotifyLowHighData.csv"));
             String row = csvReader.readLine();
@@ -378,7 +379,7 @@ public class CELOESongLearner {
 
             try {
                 //FileWriter measureWriter = new FileWriter("C:/Users/cathe/IdeaProjects/DL-Learner/scripts/SLHAccuracy.txt", true);
-                FileWriter measureWriter = new FileWriter( dataDirectory.getAbsolutePath() + "SAccuracy.txt", true);
+                FileWriter measureWriter = new FileWriter( resultDirectory.getAbsolutePath() + "SAccuracy.txt", true);
 
                 measureWriter.append("\n" + playlist + ": ");
                 measureWriter.flush();
