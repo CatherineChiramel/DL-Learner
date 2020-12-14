@@ -424,7 +424,7 @@ public class CELOESongLearner {
             lp.setNegativeExamples(sampledNegExamples);
             lp.init();
             CELOE alg = new CELOE(lp, reasoner);
-            alg.setMaxExecutionTimeInSeconds(10);
+            alg.setMaxExecutionTimeInSeconds(3600);
             alg.setStartClass(new OWLClassImpl(IRI.create(uriPrefix + "Song")));
             RhoDRDown op = new RhoDRDown();
             op.setUseHasValueConstructor(true);
