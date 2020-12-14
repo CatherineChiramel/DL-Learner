@@ -73,6 +73,7 @@ public class CELOESongLearner {
                 vectorFileRow = Arrays.asList(line.split(","));
                 if(!this.playlistVectorMap.containsKey(vectorFileRow.get(0))) {
                     vectors = new ArrayList<>();
+                    
                     for(int i=1; i<vectorFileRow.size(); i++) {
                         vectors.add(Double.parseDouble(vectorFileRow.get(i)));
                     }
